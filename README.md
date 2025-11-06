@@ -16,9 +16,9 @@ This Sudoku solver implements a backtracking CSP algorithm with configurable heu
 ## Features
 
 ### Search Heuristics
-- ✅ **MRV (Minimum Remaining Values)**: Select variables with smallest domains
-- ✅ **Degree Heuristic**: Break ties by choosing most constrained variables
-- ✅ **LCV (Least Constraining Value)**: Order values to preserve flexibility
+- **MRV (Minimum Remaining Values)**: Select variables with smallest domains
+- **Degree Heuristic**: Break ties by choosing most constrained variables
+- **LCV (Least Constraining Value)**: Order values to preserve flexibility
 
 ## Installation
 
@@ -144,7 +144,7 @@ Based on comprehensive testing with 7 diverse puzzles:
 
 | Configuration | Avg Time/Puzzle | Speedup Factor | Success Rate |
 |---------------|-----------------|----------------|--------------|
-| **Both Heuristics** 🏆 | 0.34 seconds | 26.3x | 100% |
+| **Both Heuristics** | 0.34 seconds | 26.3x | 100% |
 | **MRV Only** | 0.48 seconds | 18.9x | 100% |
 | **No Heuristics** | 9.06 seconds | 1.0x (baseline) | 100% |
 | **Degree Only** | Timeout | N/A | 0% |
