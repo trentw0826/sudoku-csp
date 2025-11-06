@@ -6,6 +6,8 @@ import time
 # Written by Chris Archibald, modified and extended by Trent Welling
 # archibald@cs.byu.edu, tdw57@byu.edu
 
+MAX_DOMAIN_LEN = 9
+
 
 class Cell:
     """
@@ -52,6 +54,12 @@ class Cell:
         """
         self.domain = domain[:]
         self.value = None
+    
+    def domain_len(self):
+        """
+        Return the length of this variable's domain
+        """
+        return len(self.domain)
 
     def remove_value(self, value):
         """
@@ -263,8 +271,17 @@ def mrv(puzzle, unassigned):
     [unassigned] is a list of (row, column) tuples corresponding to cell locations
     """
 
-    # Change this.  Return your list of minimum remaining value locations
-    return unassigned
+    min_len = MAX_DOMAIN_LEN + 1
+    mrv_variables = []
+    for u in unassigned:
+        d_len = puzzle.cell_at(u[0], u[1]).domain_len()
+        if d_len == min_len:
+            mrv_variables.append(u)
+        if d_len < min_len:
+            min_len = d_len
+            mrv_variables = [u]
+
+    return mrv_variables
 
 
 def max_degree(puzzle, tied):
