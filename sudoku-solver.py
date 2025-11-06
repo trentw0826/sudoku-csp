@@ -375,14 +375,14 @@ def select_variable(puzzle, use_mrv=True, use_degree=True):
 
     # 2. Refine list to those with maximum degree if enabled
     if use_degree:
-        most_constaining_variables = max_degree(puzzle, minimum_remaining_values)
+        most_constraining_variables = max_degree(puzzle, minimum_remaining_values)
     else:
-        most_constaining_variables = minimum_remaining_values
+        most_constraining_variables = minimum_remaining_values
 
     # 3. Return first variable in the list.  This will be the only one if there was a
     #    unique most constraining variable, or the "alphabetically first" or "arbitrary" one of
     #    them if there were ties
-    return most_constaining_variables[0][0], most_constaining_variables[0][1]
+    return most_constraining_variables[0][0], most_constraining_variables[0][1]
 
 
 def order_values(puzzle, row, column):
