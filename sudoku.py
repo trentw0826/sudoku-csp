@@ -7,17 +7,6 @@ import time
 # archibald@cs.byu.edu, tdw57@byu.edu
 
 
-def student_name():
-    """
-    This function returns your name.  This will be used for automated grading
-    """
-
-    # Task 1 CODE HERE
-
-    # Change to be your name
-    return "Cosmo Cougar"
-
-
 class Cell:
     """
     This class represents a variable corresponding to an
