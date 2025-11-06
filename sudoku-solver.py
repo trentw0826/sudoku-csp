@@ -93,11 +93,30 @@ class Sudoku:
     This class contains all of the cells for an entire Sudoku puzzle
     """
 
-    def __init__(self):
+    def __init__(self, source=None):
         """
-        Initialize this puzzle by creating all of the cells (initially empty)
+        Initialize this puzzle with constructor overloading:
+        - Sudoku(): Create blank puzzle (all cells initially empty)
+        - Sudoku(other_puzzle): Create copy of another Sudoku puzzle
+        - Sudoku(puzzle_string): Create puzzle from string representation
+        
+        Args:
+            source: None for blank puzzle, Sudoku object for copy, or string for initialization
         """
+        # Always start by creating the grid structure
         self.cells = [[Cell() for j in range(9)] for i in range(9)]
+        
+        if source is None:
+            # Case 1: Blank puzzle (default behavior)
+            pass
+        elif isinstance(source, Sudoku):
+            # Case 2: Copy constructor
+            self.copy_puzzle(source)
+        elif isinstance(source, str):
+            # Case 3: Initialize from string representation
+            self.input_puzzle(source)
+        else:
+            raise TypeError(f"Sudoku constructor expects None, Sudoku object, or string, got {type(source)}")
 
     def __repr__(self):
         """
@@ -392,8 +411,7 @@ def backtracking_search(puzzle):
     for value in value_ordering:
 
         # 4.1 Create new puzzle and set it to be equal to current puzzle
-        new_puzzle = Sudoku()
-        new_puzzle.copy_puzzle(puzzle)
+        new_puzzle = Sudoku(puzzle)
 
         # 4.2 Assign current value to selected variable (use assign_value())
         new_puzzle.cell_at(r, c).assign_value(value)
@@ -443,10 +461,7 @@ if __name__ == "__main__":
             print("\nSearching to find solution to following puzzle:", ps)
 
             # Create a new puzzle to solve
-            p = Sudoku()
-
-            # Initialize the puzzle to match the file
-            p.input_puzzle(ps.rstrip())
+            p = Sudoku(ps.rstrip())
 
             # Display the puzzle (before it has been solved)
             print(p)
