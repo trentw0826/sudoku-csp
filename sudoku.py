@@ -54,7 +54,7 @@ class Cell:
         """
         self.domain = domain[:]
         self.value = None
-    
+
     def domain_len(self):
         """
         Return the length of this variable's domain
@@ -148,7 +148,7 @@ class Sudoku:
         """
         Initialize this puzzle to match the starting state specified by [puzzle string]
         This is done by assigning all of the cells to be their given value (if specified)
-        Then forward-checking is performed for every variable assingment that has been made
+        Then forward-checking is performed for every variable assignment that has been made
         """
 
         # Cycle through the puzzle and assign all the cells that are given in the input string
@@ -358,17 +358,13 @@ def select_variable(puzzle):
 def order_values(puzzle, row, column):
     """
     For the variable at the given row and column, return the values of this variables domain,
-    ordered by the least-constraining value heuristic.  You can use the forward_check() function
-    in the 'count' mode to count the number of values that would be removed from other variables'
-    domains by a particular variable=value assignment
+    ordered by the least-constraining value (LCV) heuristic.
     """
 
-    # Get the current domain for this variable
     domain = puzzle.cell_at(row, column).domain[:]
-
-    # TASK 5 CODE HERE
-
-    # Change this to return an ordered list
+    domain.sort(
+        key=lambda value: puzzle.forward_check(row, column, value, mode="count")
+    )
     return domain
 
 
@@ -382,44 +378,44 @@ def backtracking_search(puzzle):
     If successful, this function returns the solved puzzle object
     """
 
-    # PSEUDO-CODE to help with structuring this function
+    # 1. Base case: is [puzzle] solved?
+    if puzzle.is_solved():
+        return puzzle
 
-    # TASK 6 CODE HERE
+    # 2. Select a variable to assign next 
+    r, c = select_variable(puzzle)
 
-    # 1. Base case, is input [puzzle] solved? If so, return the puzzle. Use is_solved() function
-    #    to see if the puzzle is solved.
-
-    # 2. Select a variable to assign next ( use select_variable() function, which returns
-    #    row and column of the variable
-
-    # 3. Select an ordering over the values (use order_values(r,c) where r, c are the row
-    #    and column of the selected variable.  It returns a list of values
+    # 3. Select an ordering over the values in the variable's domain
+    value_ordering = order_values(puzzle, r, c)
 
     # 4. For each value in the ordered list:
+    for value in value_ordering:
 
-    # 4.1 Get a copy of the puzzle to modify
-    #     4.1.a Create new puzzle
+        # 4.1 Create new puzzle and set it to be equal to current puzzle
+        new_puzzle = Sudoku()
+        new_puzzle.copy_puzzle(puzzle)
 
-    #     4.1.b Set it to be equal to the current puzzle (use copy_puzzle())
+        # 4.2 Assign current value to selected variable (use assign_value())
+        new_puzzle.cell_at(r, c).assign_value(value)
 
-    # 4.2 Assign current value to selected variable (use assign_value())
+        # 4.3 Forward check from this assignment
+        success = new_puzzle.forward_check(r, c, value)
 
-    # 4.3 Forward check from this assignment (use forward_check(), in 'remove' mode)
-    #     which will return False if this assignment is invalid (empty domain was found)
-    #     or True if it is valid.
+        # 4.4 If forward checking detects a problem, then continue to the next value
+        if not success:
+            continue
 
-    # 4.4 If forward checking detects a problem, then continue to the next value
+        # 4.5 If forward checking doesn't detect problem, then recurse
+        solved_puzzle = backtracking_search(new_puzzle)
 
-    # 4.5 If forward checking doesn't detect problem, then recurse on the
-    #     modified puzzle (call backtracking_search())
+        # 4.6 If the search succeeds then return solved puzzle
+        if solved_puzzle:
+            return solved_puzzle
 
-    # 4.6 If the search succeeds (return value of backtracking is not None)
-    #     return solved puzzle! (this is what backtracking_search should return)
-
-    # 4.7 If search is a failure, continue with next value for this variable
+        # 4.7 If search is a failure, continue with next value for this variable
 
     # 5. If all values for the chosen variable failed, return failure (None)
-    # return None
+    return None
 
 
 if __name__ == "__main__":
