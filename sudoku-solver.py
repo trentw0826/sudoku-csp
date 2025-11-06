@@ -459,12 +459,15 @@ if __name__ == "__main__":
                        help='Disable Minimum Remaining Values heuristic for variable selection')
     parser.add_argument('--no-degree', action='store_true',
                        help='Disable degree heuristic for tie-breaking in variable selection')
+    parser.add_argument('--max-solve', type=int, default=10,
+                       help='Maximum number of puzzles to solve from the file (default: 10)')
     
     args = parser.parse_args()
     
-    # Determine which heuristics to use (enabled by default, disabled by flags)
+    # Parse arguments
     use_mrv = not args.no_mrv
     use_degree = not args.no_degree
+    max_to_solve = args.max_solve
     
     # Display which heuristics are enabled
     heuristics_used = []
@@ -487,9 +490,6 @@ if __name__ == "__main__":
         print(f"Error: File '{args.puzzle_file}' not found.")
         sys.exit(1)
 
-    # How many puzzles do we want to solve
-    max_to_solve = 10
-
     # Variable to keep track of the number of puzzles solved
     num_solved = 0
 
@@ -511,7 +511,7 @@ if __name__ == "__main__":
 
         # If the puzzle was solved (success_p is the puzzle, None if no solution)
         if success_p:
-            print("\n Successfully solved puzzle!  Here is solution:\n")
+            print("\nSuccessfully solved puzzle!  Here is solution:\n")
 
             # Display the solution to the puzzle
             print(success_p)
@@ -533,16 +533,10 @@ if __name__ == "__main__":
     pf.close()
 
     # Print Statistics
-    print(
-        "\n**************\nSolved",
-        num_solved,
-        "puzzles in",
-        end_time - start_time,
-        " seconds. ",
-    )
-
+    print("\n\n**************")
+    print(f"Solved {num_solved} puzzles in {round(end_time - start_time, 4)} seconds.")
     # Compute and display average solve time
     average_time = 0
     if num_solved > 0:
         average_time = (end_time - start_time) / float(num_solved)
-    print(" Average Solve Time = ", average_time, " seconds")
+    print(f"Average solve time = {round(average_time, 4)} seconds")
