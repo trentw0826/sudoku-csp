@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import time
+import argparse
 
 # Code for AI Sudoku Programming Assignment
 # Written by Chris Archibald, modified and extended by Trent Welling
@@ -347,26 +348,36 @@ def get_unassigned_variables(puzzle):
     return unassigned
 
 
-def select_variable(puzzle):
+def select_variable(puzzle, use_mrv=True, use_degree=True):
     """
     This function will return the row and column location of the variable that should be
     selected next from [puzzle].
-    It will do this using the minimum-remaining-values heuristic, with ties broken by the
-    degree heuristic, and any remaining ties broken arbitrarily
+    Uses the Minimum Remaining Values heuristic (if use_mrv=True) with
+    ties broken by the Degree heuristic (if use_degree=True)
+    (additional ties broken arbitrarily)
     """
 
     # 0. Get the initial list of all unassigned variables
     unassigned = get_unassigned_variables(puzzle)
+    
+    if not unassigned:
+        return None, None
 
-    # 1. Use MRV heuristic to get list of variables with the min remaining values
-    minimum_remaining_values = mrv(puzzle, unassigned)
+    # 1. Use MRV heuristic if enabled, otherwise use all unassigned variables
+    if use_mrv:
+        minimum_remaining_values = mrv(puzzle, unassigned)
+    else:
+        minimum_remaining_values = unassigned
 
-    # If MRV identifies a unique variable, then return it
-    if len(minimum_remaining_values) == 1:
+    # If only one variable or MRV disabled, and degree heuristic not needed
+    if len(minimum_remaining_values) == 1 or not use_degree:
         return minimum_remaining_values[0][0], minimum_remaining_values[0][1]
 
-    # 2. Refine list to those with maximum degree
-    most_constaining_variables = max_degree(puzzle, minimum_remaining_values)
+    # 2. Refine list to those with maximum degree if enabled
+    if use_degree:
+        most_constaining_variables = max_degree(puzzle, minimum_remaining_values)
+    else:
+        most_constaining_variables = minimum_remaining_values
 
     # 3. Return first variable in the list.  This will be the only one if there was a
     #    unique most constraining variable, or the "alphabetically first" or "arbitrary" one of
@@ -387,7 +398,7 @@ def order_values(puzzle, row, column):
     return domain
 
 
-def backtracking_search(puzzle):
+def backtracking_search(puzzle, use_mrv=True, use_degree=True):
     """
     Perform a recursive backtracking search on [puzzle],
     ensuring that a copy is made of the puzzle
@@ -401,8 +412,11 @@ def backtracking_search(puzzle):
     if puzzle.is_solved():
         return puzzle
 
-    # 2. Select a variable to assign next 
-    r, c = select_variable(puzzle)
+    # 2. Select a variable to assign next using specified heuristics
+    r, c = select_variable(puzzle, use_mrv, use_degree)
+    
+    if r is None or c is None:
+        return None
 
     # 3. Select an ordering over the values in the variable's domain
     value_ordering = order_values(puzzle, r, c)
@@ -424,7 +438,7 @@ def backtracking_search(puzzle):
             continue
 
         # 4.5 If forward checking doesn't detect problem, then recurse
-        solved_puzzle = backtracking_search(new_puzzle)
+        solved_puzzle = backtracking_search(new_puzzle, use_mrv, use_degree)
 
         # 4.6 If the search succeeds then return solved puzzle
         if solved_puzzle:
@@ -437,72 +451,98 @@ def backtracking_search(puzzle):
 
 
 if __name__ == "__main__":
-
-    # Check the input arguments (should just be the puzzle file)
-    if len(sys.argv) != 2:
-        print("USAGE: python sudoku.py PUZZLE_FILE.txt")
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Sudoku CSP Solver with configurable heuristics')
+    parser.add_argument('puzzle_file', help='Path to the puzzle file')
+    parser.add_argument('--no-mrv', action='store_true', 
+                       help='Disable Minimum Remaining Values heuristic for variable selection')
+    parser.add_argument('--no-degree', action='store_true',
+                       help='Disable degree heuristic for tie-breaking in variable selection')
+    
+    args = parser.parse_args()
+    
+    # Determine which heuristics to use (enabled by default, disabled by flags)
+    use_mrv = not args.no_mrv
+    use_degree = not args.no_degree
+    
+    # Display which heuristics are enabled
+    heuristics_used = []
+    if use_mrv:
+        heuristics_used.append("MRV")
+    if use_degree:
+        heuristics_used.append("Degree")
+    
+    if heuristics_used:
+        print(f"Using heuristics: {', '.join(heuristics_used)}")
     else:
-        print("Searching for solutions to puzzles from file: ", sys.argv[1])
+        print("Using no heuristics (basic variable selection)")
 
-        # Open puzzle file
-        pf = open(sys.argv[1], "r")
+    print("Searching for solutions to puzzles from file: ", args.puzzle_file)
 
-        # How many puzzles do we want to solve
-        max_to_solve = 10
+    # Open puzzle file
+    try:
+        pf = open(args.puzzle_file, "r")
+    except FileNotFoundError:
+        print(f"Error: File '{args.puzzle_file}' not found.")
+        sys.exit(1)
 
-        # Variable to keep track of the number of puzzles solved
-        num_solved = 0
+    # How many puzzles do we want to solve
+    max_to_solve = 10
 
-        # Start time for solving
-        start_time = time.perf_counter()
+    # Variable to keep track of the number of puzzles solved
+    num_solved = 0
 
-        # Each puzzle takes up a single line in the file
-        for ps in pf.readlines():
-            print("\nSearching to find solution to following puzzle:", ps)
+    # Start time for solving
+    start_time = time.perf_counter()
 
-            # Create a new puzzle to solve
-            p = Sudoku(ps.rstrip())
+    # Each puzzle takes up a single line in the file
+    for ps in pf.readlines():
+        print("\nSearching to find solution to following puzzle:", ps)
 
-            # Display the puzzle (before it has been solved)
-            print(p)
+        # Create a new puzzle to solve
+        p = Sudoku(ps.rstrip())
 
-            # Solve the puzzle
-            success_p = backtracking_search(p)
+        # Display the puzzle (before it has been solved)
+        print(p)
 
-            # If the puzzle was solved (success_p is the puzzle, None if no solution)
-            if success_p:
-                print("\n Successfully solved puzzle!  Here is solution:\n")
+        # Solve the puzzle with specified heuristics
+        success_p = backtracking_search(p, use_mrv=use_mrv, use_degree=use_degree)
 
-                # Display the solution to the puzzle
-                print(success_p)
-                num_solved += 1
-                # Update the statistics
+        # If the puzzle was solved (success_p is the puzzle, None if no solution)
+        if success_p:
+            print("\n Successfully solved puzzle!  Here is solution:\n")
 
-            else:
-                print("\n!! Unable to solve puzzle !!\n")
-                break
+            # Display the solution to the puzzle
+            print(success_p)
+            num_solved += 1
+            # Update the statistics
 
-            # Stop when we solve enough
-            if num_solved > max_to_solve:
-                break
+        else:
+            print("\n!! Unable to solve puzzle !!\n")
+            break
 
-        # Record end time
-        end_time = time.perf_counter()
+        # Stop when we solve enough
+        if num_solved > max_to_solve:
+            break
 
-        # Close the puzzle file
-        pf.close()
+    # Record end time
+    end_time = time.perf_counter()
 
-        # Print Statistics
-        print(
-            "\n**************\nSolved",
-            num_solved,
-            "puzzles in",
-            end_time - start_time,
-            " seconds. ",
-        )
+    # Close the puzzle file
+    pf.close()
 
-        # Compute and display average solve time
-        average_time = 0
-        if num_solved > 0:
-            average_time = (end_time - start_time) / float(num_solved)
-        print(" Average Solve Time = ", average_time, " seconds")
+    # Print Statistics
+    print(
+        "\n**************\nSolved",
+        num_solved,
+        "puzzles in",
+        end_time - start_time,
+        " seconds. ",
+    )
+
+    # Compute and display average solve time
+    average_time = 0
+    if num_solved > 0:
+        average_time = (end_time - start_time) / float(num_solved)
+    print(" Average Solve Time = ", average_time, " seconds")
