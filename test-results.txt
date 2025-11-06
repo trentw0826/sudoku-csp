@@ -1,0 +1,22 @@
+Configuration: Both Heuristics
+  Puzzles solved: 7
+  Total time: 2.50 seconds
+  Average time per puzzle: 0.3438 seconds
+  Efficiency: 2.80 puzzles/second
+
+Configuration: MRV Only
+  Puzzles solved: 7
+  Total time: 3.44 seconds
+  Average time per puzzle: 0.4785 seconds
+  Efficiency: 2.03 puzzles/second
+
+Configuration: Degree Only
+  Puzzles solved: 0
+  Total time: 300.00 seconds (timeout)
+  Status: Failed to solve any puzzles
+
+Configuration: No Heuristics
+  Puzzles solved: 7
+  Total time: 63.48 seconds
+  Average time per puzzle: 9.0566 seconds
+  Efficiency: 0.11 puzzles/second
