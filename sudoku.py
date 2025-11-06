@@ -29,7 +29,7 @@ class Cell:
         Return a string representation of this cell
         """
         return str(self.value) if self.value else "."
-    
+
     def __repr__(self):
         """
         Return a string representation of this cell for storage purposes
@@ -72,7 +72,7 @@ class Cell:
         self.domain = other.domain[:]
         self.value = other.value
 
-    def empty(self):
+    def is_unassigned(self):
         """
         Return True if this cell has not been assigned a value (value is None)
         Return False if this cell has been assigned a value
@@ -132,7 +132,7 @@ class Sudoku:
         """
         for r in range(9):
             for c in range(9):
-                if self.cell_at(r, c).empty():
+                if self.cell_at(r, c).is_unassigned():
                     return False
         return True
 
@@ -158,7 +158,7 @@ class Sudoku:
         # was assigned a value
         for r in range(9):
             for c in range(9):
-                if not self.cell_at(r, c).empty():
+                if not self.cell_at(r, c).is_unassigned():
                     success = self.forward_check(r, c, self.cell_at(r, c).value)
                     if not success:
                         ### This puzzle has some serious problem.  Exit now.
@@ -166,23 +166,60 @@ class Sudoku:
                         print(" Puzzle string: ", puzzle_string)
                         sys.exit()
 
+    def get_neighbors(self, row, column):
+        """
+        Return a set of (row, column) tuples corresponding to the neighbors
+        of the cell at [row], [column]
+        Neighbors are those cells in the same row, column, or grid
+        """
+        neighbors = set()
+
+        # Add row and column neighbors
+        for i in range(9):
+            if i != column:
+                neighbors.add(self.cell_at(row, i))
+            if i != row:
+                neighbors.add(self.cell_at(i, column))
+
+        # Add grid neighbors
+        grid, cell = self.get_grid_cell(row, column)
+        base_r = 3 * int(grid / 3)
+        base_c = 3 * (grid % 3)
+        for off_r in range(3):
+            for off_c in range(3):
+                r = base_r + off_r
+                c = base_c + off_c
+                if r != row or c != column:
+                    neighbors.add(self.cell_at(r, c))
+
+        return neighbors
+
     def forward_check(self, row, column, value, mode="remove"):
         """
         Perform forward checking for the assignment of [value] to the cell at [row], [column]
-        If [mode] == remove, then values should actually be removed other cell domains.
-        Use the remove_value() function from the Cell class.
         Return False if any domain is empty as a result of forward checking, True otherwise.
         If [mode] == count, then values shouldn't be removed, but merely a count returned
         of how many values forward checking would remove
         """
 
-        # TASK 2 Code here
-
-        # Modify these return values!!
+        neighbors = self.get_neighbors(row, column)
         if mode == "remove":
+            for neighbor in neighbors:
+                # Skip assigned neighbors
+                if not neighbor.is_unassigned():
+                    continue
+                if not neighbor.remove_value(value):
+                    return False  # Empty domain created
             return True
         elif mode == "count":
-            return 0
+            count = 0
+            for neighbor in neighbors:
+                # Skip assigned neighbors
+                if not neighbor.is_unassigned():
+                    continue
+                if value in neighbor.domain:
+                    count += 1
+            return count
 
     def get_row_column(self, grid, cell):
         """
@@ -271,8 +308,7 @@ def get_unassigned_variables(puzzle):
     unassigned = []
     for r in range(9):
         for c in range(9):
-            # Unassigned cells have a value of None
-            if puzzle.cell_at(r, c).empty():
+            if puzzle.cell_at(r, c).is_unassigned():
                 unassigned.append((r, c))
     return unassigned
 
