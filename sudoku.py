@@ -83,6 +83,13 @@ class Cell:
         self.domain = other.domain[:]
         self.value = other.value
 
+    def empty(self):
+        """
+        Return True if this cell has not been assigned a value (value is None)
+        Return False if this cell has been assigned a value
+        """
+        return self.value is None
+
 
 class Sudoku:
     """
@@ -99,7 +106,7 @@ class Sudoku:
         """
         Return a single string representation of the puzzle. For storage purposes
         """
-        return "".join(str(self.cells[r][c]) for r in range(9) for c in range(9))
+        return "".join(str(self.cell_at(r, c)) for r in range(9) for c in range(9))
 
     def __str__(self):
         """
@@ -113,8 +120,8 @@ class Sudoku:
                 if (c % 3) == 0 and c > 0:
                     out.append(" ")
                 out.append(
-                    str(self.cells[r][c].value)
-                    if self.cells[r][c].value is not None
+                    str(self.cell_at(r, c).value)
+                    if self.cell_at(r, c).value is not None
                     else "."
                 )
             out.append("\n")
@@ -125,7 +132,7 @@ class Sudoku:
         Set all of this puzzle's cells to be the same as the other puzzle (input to function)
         """
         [
-            [self.cells[j][i].copy_cell(other.cells[j][i]) for j in range(9)]
+            [self.cell_at(j, i).copy_cell(other.cell_at(j, i)) for j in range(9)]
             for i in range(9)
         ]
 
@@ -136,7 +143,7 @@ class Sudoku:
         """
         for r in range(9):
             for c in range(9):
-                if self.cells[r][c].value is None:
+                if self.cell_at(r, c).empty():
                     return False
         return True
 
@@ -152,7 +159,7 @@ class Sudoku:
         c = 0
         for v in puzzle_string:
             if v != ".":
-                self.cells[r][c].assign_value(int(v))
+                self.cell_at(r, c).assign_value(int(v))
             c += 1
             if c > 8:
                 c = 0
@@ -162,8 +169,8 @@ class Sudoku:
         # was assigned a value
         for r in range(9):
             for c in range(9):
-                if self.cells[r][c].value is not None:
-                    success = self.forward_check(r, c, self.cells[r][c].value)
+                if not self.cell_at(r, c).empty():
+                    success = self.forward_check(r, c, self.cell_at(r, c).value)
                     if not success:
                         ### This puzzle has some serious problem.  Exit now.
                         print("Contradiction in Puzzle! Invalid input. Exiting")
@@ -209,6 +216,13 @@ class Sudoku:
         off_c = column - base_c
         cell = 3 * int(off_r) + int(off_c)
         return grid, cell
+
+    def cell_at(self, row, col):
+        """
+        Return the Cell object at the given row and column position
+        This is a helper function to access cells more cleanly
+        """
+        return self.cells[row][col]
 
 
 # Other functions (not in Sudoku class)
@@ -269,7 +283,7 @@ def get_unassigned_variables(puzzle):
     for r in range(9):
         for c in range(9):
             # Unassigned cells have a value of None
-            if puzzle.cells[r][c].value is None:
+            if puzzle.cell_at(r, c).empty():
                 unassigned.append((r, c))
     return unassigned
 
@@ -310,7 +324,7 @@ def order_values(puzzle, row, column):
     """
 
     # Get the current domain for this variable
-    domain = puzzle.cells[row][column].domain[:]
+    domain = puzzle.cell_at(row, column).domain[:]
 
     # TASK 5 CODE HERE
 
@@ -399,7 +413,7 @@ if __name__ == "__main__":
             p.input_puzzle(ps.rstrip())
 
             # Display the puzzle (before it has been solved)
-            p.print_puzzle()
+            print(p)
 
             # Solve the puzzle
             success_p = backtracking_search(p)
