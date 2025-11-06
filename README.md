@@ -182,11 +182,11 @@ This implementation demonstrates:
 
 This project is part of an academic assignment for CS 470 (Artificial Intelligence). Please respect academic integrity policies when using this code.
 
+## AI Disclosure
+README partially generated with Claude Sonnet 4
+
 ---
 
 **Authors**: Chris Archibald, Trent Welling  
 **Course**: CS 470 - Artificial Intelligence  
 **Institution**: Brigham Young University
-
-## AI Disclosure
-README partially generated with Claude Sonnet 4
