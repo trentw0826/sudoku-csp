@@ -294,10 +294,8 @@ def count_constraints(puzzle, row, column):
     This is called by the max_degree function
     """
 
-    # TASK 3 CODE HERE
-
-    # MODIFY THIS
-    # return 0
+    neighbors = puzzle.get_neighbors(row, column)
+    return sum(neighbor.is_unassigned() for neighbor in neighbors)
 
 
 def get_unassigned_variables(puzzle):
